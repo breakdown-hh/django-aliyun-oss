@@ -94,9 +94,9 @@ class OSSStorage(Storage):
             raise IOError("OSSStorageError: %s" % response.read())
 
         header_map = convert_header2map(response.getheaders())
-        content_len = safe_get_element("content-length", header_map)
+        content_range = safe_get_element("content-range", header_map)
         etag = safe_get_element("etag", header_map).upper()
-        return response.read(), etag, content_len
+        return response.read(), etag, content_range
 
     def _save(self, name, content):
         name = self._clean_name(name)
@@ -188,7 +188,7 @@ class OSSStorageFile(File):
         else:
             args = [self.start_range, self.start_range+num_bytes-1]
         data, etags, content_range = self._storage._read(self._name, *args)
-        if content_range is not None:
+        if content_range is not '':
             current_range, size = content_range.split(' ', 1)[1].split('/', 1)
             start_range, end_range = current_range.split('-', 1)
             self._size, self.start_range = int(size), int(end_range)+1
